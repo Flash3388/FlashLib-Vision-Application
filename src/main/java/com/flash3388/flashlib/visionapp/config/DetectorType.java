@@ -21,7 +21,7 @@ public enum DetectorType {
             ObjectTracker tracker = trackerType.create();
 
             TargetConfiguration target = new TargetConfiguration(config.getConfig("target"));
-            return new BasicScoreVisionDetector(target, tracker);
+            return new BasicScoreVisionDetector(target, tracker, object);
         }
     }
     ;

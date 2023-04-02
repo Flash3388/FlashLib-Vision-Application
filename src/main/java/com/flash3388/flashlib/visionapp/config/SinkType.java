@@ -3,6 +3,7 @@ package com.flash3388.flashlib.visionapp.config;
 import com.flash3388.flashlib.net.obsr.StoredObject;
 import com.flash3388.flashlib.visionapp.vision.pipelines.AnalysisSink;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionAnalyzer;
+import com.flash3388.flashlib.visionapp.vision.pipelines.sinks.ObsrSink;
 import com.typesafe.config.Config;
 
 public enum SinkType {
@@ -10,6 +11,12 @@ public enum SinkType {
         @Override
         public AnalysisSink createFromConfig(Config config, StoredObject object) {
             return new AnalysisSink.Empty();
+        }
+    },
+    OBSR("obsr") {
+        @Override
+        public AnalysisSink createFromConfig(Config config, StoredObject object) {
+            return new ObsrSink(object);
         }
     }
     ;
