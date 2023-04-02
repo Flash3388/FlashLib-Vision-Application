@@ -4,19 +4,20 @@ import com.flash3388.flashlib.visionapp.vision.sources.CvCameraSource;
 import com.flash3388.flashlib.visionapp.vision.sources.VisionSource;
 import com.typesafe.config.Config;
 import org.opencv.videoio.VideoCapture;
+import org.opencv.videoio.Videoio;
 
 public enum SourceType {
     CV_CAMERA("cv-camera") {
         @Override
         public void checkConfig(Config config) {
-            int dev = config.getInt("dev");
-            assert dev >= 0;
+            new CameraConfiguration(config.getConfig("camera"));
         }
 
         @Override
         public VisionSource createFromConfig(Config config) {
-            int dev = config.getInt("dev");
-            return new CvCameraSource(new VideoCapture(dev));
+            CameraConfiguration cameraConfiguration =
+                    new CameraConfiguration(config.getConfig("camera"));
+            return new CvCameraSource(cameraConfiguration);
         }
     }
     ;
