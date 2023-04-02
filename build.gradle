@@ -92,7 +92,7 @@ application {
 }
 
 run {
-
+    args "--display-pipelines"
 }
 
 task deploy {
