@@ -1,7 +1,10 @@
 package com.flash3388.flashlib.visionapp.vision.pipelines.detectors;
 
+import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 public class RatioTarget implements ScorableTarget {
 
@@ -37,5 +40,10 @@ public class RatioTarget implements ScorableTarget {
         return ratio > mExpectedDimensionRatio ?
                 mExpectedDimensionRatio / ratio :
                 ratio / mExpectedDimensionRatio;
+    }
+
+    @Override
+    public void drawOn(Mat mat) {
+        Imgproc.rectangle(mat, mRect.tl(), mRect.br(), new Scalar(78, 150, 200), 2);
     }
 }

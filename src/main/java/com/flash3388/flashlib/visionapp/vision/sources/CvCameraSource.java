@@ -20,12 +20,10 @@ public class CvCameraSource implements VisionSource {
     public VisionData get() throws VisionException {
         Mat mat = new Mat();
         if (!mVideoCapture.read(mat)) {
-            mat.release();
             throw new SourceReadFailedException();
         }
 
         if (mat.empty()) {
-            mat.release();
             throw new ImageIsEmptyException();
         }
 

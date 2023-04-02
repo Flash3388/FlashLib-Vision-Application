@@ -31,24 +31,27 @@ public class ColorProcessor implements VisionProcessor {
 
     @Override
     public VisionData process(VisionData input) throws VisionException {
-        convertColorSpace(input.getImage(), input.getColorSpace(), input.getImage());
-        filterColors(input.getImage(), input.getImage());
+        Mat mat = new Mat();
+        ColorSpace newColorSpace = convertColorSpace(input.getImage(), input.getColorSpace(), mat);
+        filterColors(mat, mat);
 
-        return input;
+        return new VisionData(input, mat, newColorSpace);
     }
 
-    private void convertColorSpace(Mat src, ColorSpace srcColorSpace, Mat dst) {
+    private ColorSpace convertColorSpace(Mat src, ColorSpace srcColorSpace, Mat dst) {
         ColorSpace dstColorSpace = ColorSpace.valueOf(mColorSpace.getString("RGB"));
 
         if (srcColorSpace != dstColorSpace) {
             int code = getColorSpaceConversionCode(srcColorSpace, dstColorSpace);
             Imgproc.cvtColor(src, dst, code);
         }
+
+        return dstColorSpace;
     }
 
     private void filterColors(Mat src, Mat dst) {
         Scalar min = arrayToScalar(mMin.getIntArray(null));
-        Scalar max = arrayToScalar(mMin.getIntArray(null));
+        Scalar max = arrayToScalar(mMax.getIntArray(null));
         Core.inRange(src, min, max, dst);
     }
 

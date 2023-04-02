@@ -13,6 +13,10 @@ public class VisionData {
         mColorSpace = colorSpace;
     }
 
+    public VisionData(VisionData other, Mat newImage, ColorSpace colorSpace) {
+        this(newImage, colorSpace);
+    }
+
     public Mat getImage() {
         return mImage;
     }

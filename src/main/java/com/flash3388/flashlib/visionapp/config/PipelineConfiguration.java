@@ -3,6 +3,7 @@ package com.flash3388.flashlib.visionapp.config;
 import com.flash3388.flashlib.net.obsr.StoredObject;
 import com.flash3388.flashlib.visionapp.vision.pipelines.AnalysisSink;
 import com.flash3388.flashlib.visionapp.vision.pipelines.BasePipeline;
+import com.flash3388.flashlib.visionapp.vision.pipelines.PipelineImageSink;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionAnalyzer;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionDetector;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionPipeline;
@@ -19,7 +20,7 @@ public class PipelineConfiguration extends ConfigurationBase {
         super(config);
     }
 
-    public VisionPipeline create(StoredObject object) {
+    public VisionPipeline create(StoredObject object, PipelineImageSink imageSink) {
         List<VisionProcessor> processors = parseProcessors(
                 mConfig.getObject("processors"),
                 object.getChild("processors"));
@@ -37,7 +38,8 @@ public class PipelineConfiguration extends ConfigurationBase {
                 processors,
                 detector,
                 analyser,
-                sink);
+                sink,
+                imageSink);
     }
 
     private static List<VisionProcessor> parseProcessors(ConfigObject configObject, StoredObject object) {

@@ -6,4 +6,5 @@ import org.opencv.core.Mat;
 public interface ScorableTarget extends Target {
 
     double score();
+    void drawOn(Mat mat);
 }

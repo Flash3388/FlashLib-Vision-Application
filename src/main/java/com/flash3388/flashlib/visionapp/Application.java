@@ -11,6 +11,8 @@ import com.flash3388.flashlib.visionapp.vision.InstanceInfo;
 import com.flash3388.flashlib.visionapp.vision.InstanceManager;
 import com.flash3388.flashlib.visionapp.vision.VisionInstance;
 import com.flash3388.flashlib.visionapp.vision.pipelines.BasePipeline;
+import com.flash3388.flashlib.visionapp.vision.pipelines.PipelineDisplay;
+import com.flash3388.flashlib.visionapp.vision.pipelines.PipelineImageSink;
 import com.flash3388.flashlib.visionapp.vision.pipelines.TestPipeline;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionPipeline;
 import com.flash3388.flashlib.visionapp.vision.sources.ComplexSource;
@@ -32,7 +34,7 @@ public class Application implements SimpleApp {
 
     private final InstanceManager mInstanceManager;
 
-    public Application(FlashLibControl control, RootConfiguration configuration) {
+    public Application(FlashLibControl control, RootConfiguration configuration, ProgramOptions programOptions) {
         mControl = control;
 
         ExecutorService executorService = Executors.newFixedThreadPool(2);
@@ -46,7 +48,13 @@ public class Application implements SimpleApp {
         for (InstanceConfiguration instanceConfiguration : configuration.getInstances().getAll().values()) {
             StoredObject object = instancesRoot.getChild(instanceConfiguration.getName());
 
-            VisionPipeline pipeline = instanceConfiguration.getPipeline().create(object.getChild("pipeline"));
+            PipelineImageSink imageSink = programOptions.shouldShowPipelines() ?
+                    new PipelineDisplay(instanceConfiguration.getName()) :
+                    null;
+            VisionPipeline pipeline = instanceConfiguration.getPipeline().create(
+                    object.getChild("pipeline"),
+                    imageSink
+            );
             VisionInstance instance = new VisionInstance(
                     new InstanceInfo(instanceConfiguration.getName()),
                     control.getClock(),

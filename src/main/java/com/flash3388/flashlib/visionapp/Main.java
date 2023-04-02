@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 
-import static net.sourceforge.argparse4j.impl.Arguments.store;
+import static net.sourceforge.argparse4j.impl.Arguments.*;
 
 public class Main {
 
@@ -39,7 +39,7 @@ public class Main {
         ProgramOptions programOptions = handleArguments(args);
         loadNatives();
 
-        Config baseConfig = ConfigFactory.parseFile(programOptions.getConfigFile());
+        Config baseConfig = ConfigFactory.parseFile(programOptions.getConfigFile()).resolve();
         RootConfiguration configuration = new RootConfiguration(baseConfig);
 
         NetworkInterface networkInterface = NetInterfaces.getInterface("lo");
@@ -58,7 +58,7 @@ public class Main {
 
             FlashLibControl control = new BasicFlashLibControl(ourId, resourceHolder, networkConfiguration);
             return new AppImplementation(control, new SimpleAppRunner(
-                    (cnt)-> new Application(cnt, configuration)
+                    (cnt)-> new Application(cnt, configuration, programOptions)
             ));
         }, instanceId);
     }
@@ -88,9 +88,19 @@ public class Main {
                 .setDefault(userDir.concat("/").concat(DEFAULT_CONFIG_FILE_NAME))
                 .help("Path to the configuration file of the program");
 
+        parser.addArgument("--display-pipelines")
+                .dest("display-pipelines")
+                .required(false)
+                .type(booleanType())
+                .action(storeTrue())
+                .setDefault(false)
+                .help("Enables visual display of the pipelines and its images");
+
+
         Namespace namespace = parser.parseArgs(args);
         return new ProgramOptions(
-                new File(namespace.getString("config-file"))
+                new File(namespace.getString("config-file")),
+                namespace.getBoolean("display-pipelines")
         );
     }
 }
