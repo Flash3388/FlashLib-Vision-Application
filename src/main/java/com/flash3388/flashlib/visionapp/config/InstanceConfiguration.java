@@ -18,4 +18,8 @@ public class InstanceConfiguration extends ConfigurationBase {
     public SourceConfiguration getSource() {
         return new SourceConfiguration(mConfig.getConfig("source"));
     }
+
+    public PipelineConfiguration getPipeline() {
+        return new PipelineConfiguration(mConfig.getConfig("pipeline"));
+    }
 }

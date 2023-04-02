@@ -26,7 +26,7 @@ public class VisionInstance {
                           VisionPipeline pipeline) {
         mInfo = info;
         mClock = clock;
-        mObject = object.getChild(info.getName());
+        mObject = object;
         mSource = source;
         mPipeline = pipeline;
 
@@ -39,7 +39,7 @@ public class VisionInstance {
                 mPipeline,
                 mClock,
                 mLogger,
-                mObject.getChild("run")
+                mObject.getChild("runner")
         );
     }
 }

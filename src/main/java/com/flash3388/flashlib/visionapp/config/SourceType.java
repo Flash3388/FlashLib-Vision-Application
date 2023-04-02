@@ -27,6 +27,9 @@ public enum SourceType {
         mConfigName = configName;
     }
 
+    public abstract void checkConfig(Config config);
+    public abstract VisionSource createFromConfig(Config config);
+
     public static SourceType fromConfigName(String typeName) {
         for (SourceType type : values()) {
             if (type.mConfigName.equals(typeName)) {
@@ -36,7 +39,4 @@ public enum SourceType {
 
         throw new EnumConstantNotPresentException(SourceType.class, typeName);
     }
-
-    public abstract void checkConfig(Config config);
-    public abstract VisionSource createFromConfig(Config config);
 }

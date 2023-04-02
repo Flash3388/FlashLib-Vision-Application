@@ -1,0 +1,156 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+plugins {
+    id 'application'
+    id 'org.hidetake.ssh' version '2.10.1'
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+
+    maven {
+        url('https://frcmaven.wpi.edu/artifactory/release')
+    }
+    maven {
+        url('https://oss.sonatype.org/content/repositories/snapshots')
+    }
+}
+
+remotes {
+    target {
+        host = "$DEPLOY_HOST"
+        user = "$DEPLOY_USER"
+
+        String suppliedPassword = ''
+        if (project.hasProperty('targetPassword')) {
+            suppliedPassword = project.getProperty('targetPassword')
+        }
+
+        password = suppliedPassword
+    }
+}
+
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    ssh.settings {
+        knownHosts = allowAnyHosts
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: project.file('libs'))
+
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.5'
+    implementation group: 'com.github.tomtzook', name: 'castle', version: '2.0.2'
+    implementation group: 'net.sourceforge.argparse4j', name: 'argparse4j', version: '0.8.1'
+    implementation group: 'com.typesafe', name: 'config', version: '1.4.2'
+
+    implementation "com.flash3388.flashlib:flashlib.core.app:$FLASHLIB_VERSION"
+    implementation ("com.flash3388.flashlib:flashlib.vision.cv:$FLASHLIB_VERSION") {
+        exclude group: 'org.openpnp'
+    }
+
+    ext.YEAR = WPILIB_VERSION.split('\\.')[0]
+    implementation group: "edu.wpi.first.thirdparty.frc${YEAR}.opencv", name: 'opencv-java', version: "$OPENCV_VERSION"
+    implementation group: "edu.wpi.first.thirdparty.frc${YEAR}.opencv", name: 'opencv-jni', version: "$OPENCV_VERSION", classifier: "$REMOTE_ARCH"
+
+    //implementation "edu.wpi.first.wpiutil:wpiutil-java:$WPILIB_VERSION"
+    //implementation "edu.wpi.first.cscore:cscore-java:$WPILIB_VERSION"
+    //implementation "edu.wpi.first.ntcore:ntcore-java:$WPILIB_VERSION"
+    //implementation "edu.wpi.first.cameraserver:cameraserver-java:$WPILIB_VERSION"
+    //implementation group: 'edu.wpi.first.cscore', name: 'cscore-jni', version: "$WPILIB_VERSION", classifier: "$REMOTE_ARCH"
+    //implementation group: 'edu.wpi.first.ntcore', name: 'ntcore-jni', version: "$WPILIB_VERSION", classifier: "$REMOTE_ARCH"
+
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.7'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.7'
+
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.4.2'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.4.2'
+    testImplementation group: 'org.junit.platform', name: 'junit-platform-runner', version: '1.2.0'
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: '2.23.4'
+    testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '2.23.0'
+    testImplementation group: 'org.hamcrest', name: 'hamcrest', version: '2.1'
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+        showStackTraces true
+    }
+}
+
+application {
+    mainClassName = 'com.flash3388.flashlib.visionapp.Main'
+    applicationName = 'FlashLib Vision App'
+}
+
+run {
+
+}
+
+task deploy {
+    dependsOn tasks.build
+    doLast {
+        ssh.run {
+            session(remotes.target) {
+                def distributionName = "${application.applicationName}.zip"
+
+                // delete old version
+                execute "rm -rf ${DEPLOY_PATH}/${application.applicationName}"
+
+                // upload new code
+                put from: "${project.buildDir}/distributions/${distributionName}", into: "$DEPLOY_PATH"
+                execute "unzip ${DEPLOY_PATH}/${distributionName} -d ${DEPLOY_PATH}"
+
+                // upload configuration
+                put from: rootProject.file('application.conf').absolutePath, into: "${DEPLOY_PATH}"
+            }
+        }
+    }
+}
+
+ext {
+    KILL_REMOTE_PROC_COMMAND = "ps -fade | grep -i ${project.jar.archiveBaseName.get()} " +
+            "| grep -v grep | xargs -n 1 " +
+            "| sed -n 2p | xargs -r kill -15"
+}
+
+task runRemote {
+    dependsOn tasks.deploy
+    doLast {
+        ssh.run {
+            session(remotes.target) {
+                // kill any previous processes
+                execute KILL_REMOTE_PROC_COMMAND
+
+                // run the last deployed
+                def runCommand =
+                        "${DEPLOY_PATH}/${application.applicationName}/bin/${application.applicationName} " +
+                        "--config-file=${DEPLOY_PATH}/application.conf"
+                if (project.hasProperty("runDebug")) {
+                    runCommand += " --log-level=DEBUG --console-log"
+                }
+
+                execute runCommand
+            }
+        }
+    }
+}
+
+task killRemote {
+    doLast {
+        ssh.run {
+            session(remotes.target) {
+                // kill any previous processes
+                execute KILL_REMOTE_PROC_COMMAND
+            }
+        }
+    }
+}

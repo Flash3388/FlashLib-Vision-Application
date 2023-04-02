@@ -10,7 +10,9 @@ import com.flash3388.flashlib.visionapp.config.RootConfiguration;
 import com.flash3388.flashlib.visionapp.vision.InstanceInfo;
 import com.flash3388.flashlib.visionapp.vision.InstanceManager;
 import com.flash3388.flashlib.visionapp.vision.VisionInstance;
+import com.flash3388.flashlib.visionapp.vision.pipelines.BasePipeline;
 import com.flash3388.flashlib.visionapp.vision.pipelines.TestPipeline;
+import com.flash3388.flashlib.visionapp.vision.pipelines.VisionPipeline;
 import com.flash3388.flashlib.visionapp.vision.sources.ComplexSource;
 import com.flash3388.flashlib.visionapp.vision.sources.CvCameraSource;
 import com.flash3388.flashlib.visionapp.vision.sources.VisionSource;
@@ -42,12 +44,15 @@ public class Application implements SimpleApp {
         // parse config
         Collection<VisionInstance> instances = new ArrayList<>();
         for (InstanceConfiguration instanceConfiguration : configuration.getInstances().getAll().values()) {
+            StoredObject object = instancesRoot.getChild(instanceConfiguration.getName());
+
+            VisionPipeline pipeline = instanceConfiguration.getPipeline().create(object.getChild("pipeline"));
             VisionInstance instance = new VisionInstance(
                     new InstanceInfo(instanceConfiguration.getName()),
                     control.getClock(),
-                    instancesRoot,
+                    object,
                     new ComplexSource(instanceConfiguration.getSource().getOpener()),
-                    new TestPipeline()
+                    pipeline
             );
             instances.add(instance);
         }

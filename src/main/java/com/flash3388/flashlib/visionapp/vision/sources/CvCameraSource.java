@@ -2,6 +2,7 @@ package com.flash3388.flashlib.visionapp.vision.sources;
 
 import com.flash3388.flashlib.vision.VisionException;
 import com.flash3388.flashlib.visionapp.vision.VisionData;
+import com.flash3388.flashlib.visionapp.vision.color.ColorSpace;
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 
@@ -28,7 +29,7 @@ public class CvCameraSource implements VisionSource {
             throw new ImageIsEmptyException();
         }
 
-        return new VisionData(mat);
+        return new VisionData(mat, ColorSpace.BGR);
     }
 
     @Override
