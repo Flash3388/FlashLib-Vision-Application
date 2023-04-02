@@ -16,10 +16,13 @@ import java.util.Set;
 public class CenteroidTracker implements ObjectTracker {
 
     private final Map<Integer, ScorableTarget> mTrackedObjects;
+    private final Map<Integer, ScorableTarget> mOldObjects;
+
     private int mNextId;
 
     public CenteroidTracker() {
         mTrackedObjects = new HashMap<>();
+        mOldObjects = new HashMap<>();
         mNextId = 1;
     }
 
@@ -27,9 +30,11 @@ public class CenteroidTracker implements ObjectTracker {
     public Map<Integer, ? extends ScorableTarget> updateTracked(Collection<? extends ScorableTarget> objects) {
         List<ScorableTarget> targetsList = new LinkedList<>(objects);
         Map<Integer, ScorableTarget> updates = new HashMap<>();
-        Set<Integer> knownIds = new HashSet<>(mTrackedObjects.keySet());
+        Map<Integer, ScorableTarget> knownIds = new HashMap<>(mTrackedObjects);
 
-        for (Map.Entry<Integer, ScorableTarget> entry : mTrackedObjects.entrySet()) {
+        Map<Integer, ScorableTarget> tracks = new HashMap<>(mOldObjects);
+        tracks.putAll(mTrackedObjects);
+        for (Map.Entry<Integer, ScorableTarget> entry : tracks.entrySet()) {
             List<TrackPair> trackPairs = new ArrayList<>();
             for (int i = 0; i < targetsList.size(); i++) {
                 trackPairs.add(new TrackPair(entry.getValue(), i, targetsList.get(i)));
@@ -53,8 +58,9 @@ public class CenteroidTracker implements ObjectTracker {
         mTrackedObjects.putAll(updates);
 
         // handle lost objects
-        for (int id : knownIds) {
-            mTrackedObjects.remove(id);
+        for (Map.Entry<Integer, ScorableTarget> entry : knownIds.entrySet()) {
+            mTrackedObjects.remove(entry.getKey());
+            mOldObjects.put(entry.getKey(), entry.getValue());
         }
 
         // add new objects
