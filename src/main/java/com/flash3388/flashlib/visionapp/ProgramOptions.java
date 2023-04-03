@@ -5,18 +5,18 @@ import java.io.File;
 public class ProgramOptions {
 
     private final File mConfigFile;
-    private final boolean mShowPipelines;
+    private final boolean mAutoStartPipelines;
 
-    public ProgramOptions(File configFile, boolean showPipelines) {
+    public ProgramOptions(File configFile, boolean autoStartPipelines) {
         mConfigFile = configFile;
-        mShowPipelines = showPipelines;
+        mAutoStartPipelines = autoStartPipelines;
     }
 
     public File getConfigFile() {
         return mConfigFile;
     }
 
-    public boolean shouldShowPipelines() {
-        return mShowPipelines;
+    public boolean shouldStartPipelines() {
+        return mAutoStartPipelines;
     }
 }

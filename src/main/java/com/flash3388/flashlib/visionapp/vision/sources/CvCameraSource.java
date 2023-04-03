@@ -29,7 +29,7 @@ public class CvCameraSource implements VisionSource {
     }
 
     @Override
-    public VisionData get() throws VisionException {
+    public VisionImage get() throws VisionException {
         if (!configureCamera()) {
             throw new SourceReadFailedException();
         }
@@ -43,7 +43,7 @@ public class CvCameraSource implements VisionSource {
             throw new ImageIsEmptyException();
         }
 
-        return new VisionData(mat, ColorSpace.BGR);
+        return new VisionImage(mat, ColorSpace.BGR);
     }
 
     @Override

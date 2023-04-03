@@ -2,6 +2,7 @@ package com.flash3388.flashlib.visionapp.vision.pipelines.detectors;
 
 import com.flash3388.flashlib.net.obsr.StoredObject;
 import com.flash3388.flashlib.vision.VisionException;
+import com.flash3388.flashlib.vision.control.StandardVisionOptions;
 import com.flash3388.flashlib.vision.cv.CvProcessing;
 import com.flash3388.flashlib.visionapp.config.TargetConfiguration;
 import com.flash3388.flashlib.visionapp.vision.VisionData;
@@ -42,44 +43,48 @@ public class BasicScoreVisionDetector implements VisionDetector {
     @Override
     public Optional<Map<Integer, ? extends Target>> process(VisionData input, Consumer<Mat> postProcessOut)
             throws VisionException {
+        boolean isDebugOn = input.getOptionOrDefault(StandardVisionOptions.DEBUG, false);
+
         Collection<? extends ScorableTarget> objects = mObjectDetector.detect(input);
         Map<Integer, ? extends ScorableTarget> targets = mObjectTracker.updateTracked(objects);
 
         Mat outputMat = new Mat();
         Imgproc.cvtColor(input.getImage(), outputMat, Imgproc.COLOR_GRAY2RGB);
 
-        if (targets.isEmpty()) {
+        if (isDebugOn) {
+            if (targets.isEmpty()) {
+                postProcessOut.accept(outputMat);
+            } else {
+                Set<Integer> seenNow = new HashSet<>();
+                for (Map.Entry<Integer, ? extends ScorableTarget> entry : targets.entrySet()) {
+                    int id = entry.getKey();
+                    mKnownIds.add(id);
+                    seenNow.add(id);
 
-        } else {
-            Set<Integer> seenNow = new HashSet<>();
-            for (Map.Entry<Integer, ? extends ScorableTarget> entry : targets.entrySet()) {
-                int id = entry.getKey();
-                mKnownIds.add(id);
-                seenNow.add(id);
+                    ScorableTarget target = entry.getValue();
+                    Point center = target.getCenter();
 
-                ScorableTarget target = entry.getValue();
-                Point center = target.getCenter();
+                    StoredObject object = mDetectedRoot.getChild(String.valueOf(id));
+                    object.getEntry("center").setString(center.toString());
+                    object.getEntry("width").setDouble(target.getWidthPixels());
+                    object.getEntry("height").setDouble(target.getHeightPixels());
+                    object.getEntry("score").setDouble(target.score());
 
-                StoredObject object = mDetectedRoot.getChild(String.valueOf(id));
-                object.getEntry("center").setString(center.toString());
-                object.getEntry("width").setDouble(target.getWidthPixels());
-                object.getEntry("height").setDouble(target.getHeightPixels());
-                object.getEntry("score").setDouble(target.score());
+                    target.drawOn(outputMat);
+                    Imgproc.putText(outputMat, String.valueOf(entry.getKey()), center,
+                            Imgproc.FONT_HERSHEY_PLAIN, 1, new Scalar(23, 35, 100));
+                }
 
-                target.drawOn(outputMat);
-                Imgproc.putText(outputMat, String.valueOf(entry.getKey()), center,
-                        Imgproc.FONT_HERSHEY_PLAIN, 1, new Scalar(23, 35, 100));
-            }
+                Set<Integer> notSeen = new HashSet<>(mKnownIds);
+                notSeen.removeAll(seenNow);
+                for (Integer id : notSeen) {
+                    StoredObject object = mDetectedRoot.getChild(String.valueOf(id));
+                    object.delete();
+                }
 
-            Set<Integer> notSeen = new HashSet<>(mKnownIds);
-            notSeen.removeAll(seenNow);
-            for (Integer id : notSeen) {
-                StoredObject object = mDetectedRoot.getChild(String.valueOf(id));
-                object.delete();
+                postProcessOut.accept(outputMat);
             }
         }
-
-        postProcessOut.accept(outputMat);
 
         return Optional.of(targets);
     }

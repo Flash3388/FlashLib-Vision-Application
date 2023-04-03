@@ -2,11 +2,8 @@ package com.flash3388.flashlib.visionapp.config;
 
 import com.flash3388.flashlib.net.obsr.StoredObject;
 import com.flash3388.flashlib.visionapp.vision.pipelines.AnalysisSink;
-import com.flash3388.flashlib.visionapp.vision.pipelines.BasePipeline;
-import com.flash3388.flashlib.visionapp.vision.pipelines.PipelineImageSink;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionAnalyzer;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionDetector;
-import com.flash3388.flashlib.visionapp.vision.pipelines.VisionPipeline;
 import com.flash3388.flashlib.visionapp.vision.pipelines.VisionProcessor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
@@ -20,26 +17,28 @@ public class PipelineConfiguration extends ConfigurationBase {
         super(config);
     }
 
-    public VisionPipeline create(StoredObject object, PipelineImageSink imageSink) {
-        List<VisionProcessor> processors = parseProcessors(
+    public List<VisionProcessor> getProcessors(StoredObject object) {
+        return parseProcessors(
                 mConfig.getObject("processors"),
                 object.getChild("processors"));
-        VisionDetector detector = parseDetector(
+    }
+
+    public VisionDetector getDetector(StoredObject object) {
+        return parseDetector(
                 mConfig.getConfig("detector"),
                 object.getChild("detector"));
-        VisionAnalyzer analyser = parseAnalyser(
+    }
+
+    public VisionAnalyzer getAnalyser(StoredObject object) {
+        return parseAnalyser(
                 mConfig.getConfig("analyser"),
                 object.getChild("analyser"));
-        AnalysisSink sink = parseSink(
+    }
+
+    public AnalysisSink getSink(StoredObject object) {
+        return parseSink(
                 mConfig.getConfig("sink"),
                 object.getChild("sink"));
-
-        return new BasePipeline(
-                processors,
-                detector,
-                analyser,
-                sink,
-                imageSink);
     }
 
     private static List<VisionProcessor> parseProcessors(ConfigObject configObject, StoredObject object) {

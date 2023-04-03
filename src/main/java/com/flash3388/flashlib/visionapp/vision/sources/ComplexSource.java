@@ -3,7 +3,6 @@ package com.flash3388.flashlib.visionapp.vision.sources;
 import com.castle.util.closeables.Closeables;
 import com.castle.util.function.ThrowingSupplier;
 import com.flash3388.flashlib.vision.VisionException;
-import com.flash3388.flashlib.visionapp.vision.VisionData;
 
 public class ComplexSource implements VisionSource {
 
@@ -16,7 +15,7 @@ public class ComplexSource implements VisionSource {
     }
 
     @Override
-    public synchronized VisionData get() throws VisionException {
+    public synchronized VisionImage get() throws VisionException {
         VisionSource source = openSource();
         try {
             return source.get();

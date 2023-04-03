@@ -88,19 +88,19 @@ public class Main {
                 .setDefault(userDir.concat("/").concat(DEFAULT_CONFIG_FILE_NAME))
                 .help("Path to the configuration file of the program");
 
-        parser.addArgument("--display-pipelines")
-                .dest("display-pipelines")
+        parser.addArgument("--start-pipelines")
+                .dest("start-pipelines")
                 .required(false)
                 .type(booleanType())
                 .action(storeTrue())
                 .setDefault(false)
-                .help("Enables visual display of the pipelines and its images");
+                .help("Enables auto-start of the pipelines");
 
 
         Namespace namespace = parser.parseArgs(args);
         return new ProgramOptions(
                 new File(namespace.getString("config-file")),
-                namespace.getBoolean("display-pipelines")
+                namespace.getBoolean("start-pipelines")
         );
     }
 }
